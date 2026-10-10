@@ -1,0 +1,19 @@
+{
+  "name": "aishe-desktop",
+  "productName": "Aishe",
+  "version": "1.0.0",
+  "description": "Full desktop client for aishe — chat, voice, memory, sessions, services, config and diagnostics in one window.",
+  "main": "main.js",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/backend.test.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}

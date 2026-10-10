@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out/
+*.tsbuildinfo
+
+# Local state / logs — never commit these, they can carry live API keys
+.logs/
+*.log
+.env
+.env.*
+deepagent.env
+
+# Local user config and databases
+*.db
+*.db-wal
+*.db-shm
+config.local.yaml
+
+# Editor / OS noise
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Internal backups
+.bak-*
