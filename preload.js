@@ -16,6 +16,11 @@ contextBridge.exposeInMainWorld("aishe", {
 
   health: () => call("health"),
 
+  /** Resolved install paths, from the CLI's shared resolver. */
+  core: {
+    paths: () => call("core:paths"),
+  },
+
   models: {
     list: () => call("models:list"),
     set: (model) => call("model:set", model),

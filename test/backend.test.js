@@ -532,3 +532,35 @@ test("main: model:set deletes the `exited` promise before replying", () => {
   assert.ok(block[0].indexOf("delete res.exited") < block[0].lastIndexOf("return res"),
     "delete res.exited must come before `return res`");
 });
+
+/* ── shared core: one resolver for every surface ──────────────────────────── */
+
+test("core: the bridge reaches the CLI's shared resolver", () => {
+  const core = require("../lib/core");
+  assert.ok(core.available(), "aishe_core was not reachable — paths will drift again");
+  const dir = core.deepagentDir();
+  assert.ok(fs.existsSync(path.join(dir, "server.py")), `deepagent not found at ${dir}`);
+});
+
+test("core: services come from the shared registry, not a local copy", () => {
+  const core = require("../lib/core");
+  const shared = core.services();
+  assert.ok(shared, "shared service registry unavailable");
+  // The desktop must not invent its own list.
+  for (const name of Object.keys(shared)) {
+    assert.ok(name in control.SERVICES, `${name} exists in the registry but not in the desktop`);
+  }
+  // Qdrant serves memory; it was desktop-only before, which left `aishe doctor`
+  // blind to a dead vector DB.
+  assert.ok("qdrant" in shared, "qdrant missing from the shared registry");
+});
+
+test("control: deepagent resolves to the same place the CLI resolves it", () => {
+  const core = require("../lib/core");
+  assert.strictEqual(
+    control.paths.DEEPAGENT_DIR,
+    core.deepagentDir(),
+    "desktop and CLI disagree about where deepagent lives — the two-copies bug"
+  );
+  assert.ok(fs.existsSync(control.DEEPAGENT_SERVER), "resolved server.py does not exist");
+});

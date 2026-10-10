@@ -9,12 +9,14 @@
 
 const { app, BrowserWindow, ipcMain } = require("electron");
 const os = require("os");
+const fs = require("fs");
 const path = require("path");
 
 const services = require("./lib/services");
 const sessions = require("./lib/sessions");
 const cfg = require("./lib/config");
 const control = require("./lib/control");
+const core = require("./lib/core");
 
 let win = null;
 let chatAbort = null;
@@ -121,6 +123,27 @@ ipcMain.handle("app:initialTab", handler(async () => STARTUP_TAB_OVERRIDE || STA
 
 ipcMain.handle("health", handler(() => services.health()));
 ipcMain.handle("models:list", handler(() => services.listModels()));
+
+// Where everything resolved to, as decided by the CLI's shared resolver. Exposed
+// so the Keys pane can show the real paths (and flag a missing deepagent venv)
+// instead of the desktop guessing.
+ipcMain.handle(
+  "core:paths",
+  handler(() => {
+    const d = core.describe();
+    return {
+      sharedResolver: core.available(),
+      paths: d || null,
+      deepagent: {
+        dir: control.DEEPAGENT_DIR,
+        venv: control.DEEPAGENT_VENV,
+        venvExists: fs.existsSync(control.DEEPAGENT_VENV),
+        serverExists: fs.existsSync(control.DEEPAGENT_SERVER),
+      },
+      services: control.SERVICES,
+    };
+  })
+);
 
 /**
  * Switch the active model: persist it, then bounce DeepAgent so the new value
