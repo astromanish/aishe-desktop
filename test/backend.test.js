@@ -564,3 +564,36 @@ test("control: deepagent resolves to the same place the CLI resolves it", () => 
   );
   assert.ok(fs.existsSync(control.DEEPAGENT_SERVER), "resolved server.py does not exist");
 });
+
+/* ── markdown rendering: URL scheme must be restricted ────────────────────── */
+
+test("renderer: markdown links are restricted to http(s) schemes", () => {
+  const src = fs.readFileSync(path.join(__dirname, "..", "renderer", "app.js"), "utf8");
+
+  // The link regex is the gate: only http(s) URLs become <a> tags. escapeHtml
+  // alone would NOT be enough — it stops HTML injection but leaves the scheme
+  // intact, so [x](javascript:alert(1)) would still be a clickable javascript:
+  // URL. The scheme restriction has to be in the pattern.
+  assert.ok(
+    /\[\(https\?\\?\/\\?\/\[/.test(src) || /\(https\?:\\?\/\\?\/\[/.test(src),
+    "the markdown link regex no longer requires an http(s) scheme"
+  );
+
+  // And it must not have been widened to accept any scheme.
+  assert.ok(
+    !/\[\([^)]*\]\\?\)\(([a-z]+:)?\/\//.test(src),
+    "the link regex looks like it accepts arbitrary URL schemes"
+  );
+});
+
+test("renderer: markdown output is escaped before any HTML is built", () => {
+  const src = fs.readFileSync(path.join(__dirname, "..", "renderer", "app.js"), "utf8");
+  // renderMarkdown must escape the whole input first, then transform. Doing it
+  // the other way round would let <script> through as real markup.
+  const body = src.match(/function renderMarkdown\(src\)\s*\{[\s\S]*?\n\}/);
+  assert.ok(body, "renderMarkdown not found");
+  assert.ok(
+    body[0].indexOf("escapeHtml") < body[0].indexOf("split"),
+    "renderMarkdown must escape the input before splitting it into lines"
+  );
+});
