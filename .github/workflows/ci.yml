@@ -1,0 +1,112 @@
+name: Desktop CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CI: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run backend tests
+        run: npm test
+
+      - name: Type check (if tsconfig exists)
+        run: |
+          if [ -f tsconfig.json ]; then npx tsc --noEmit 2>&1 | head -30; fi
+
+      - name: Lint (if ESLint exists)
+        run: |
+          if [ -f .eslintrc.js ] || [ -f eslint.config.js ]; then npx eslint main.js preload.js lib/ renderer/ --ext .js 2>&1 | head -30; fi
+
+  # ─── Packaging jobs (run on the native OS of each target) ──────────────────
+  # linux:  build AppImage + snap
+  pack-linux:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install deps
+        run: npm ci
+      - name: Build (AppImage + snap)
+        run: npx electron-builder --linux AppImage snap
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aishe-linux-packages
+          path: dist/*linux*.{AppImage,snap}
+          if-no-files-found: error
+
+  # windows: build NSIS installer
+  pack-windows:
+    runs-on: windows-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install deps
+        run: npm ci
+      - name: Build (NSIS)
+        run: npx electron-builder --windows nsis
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aishe-windows-packages
+          path: dist/*win*.exe
+          if-no-files-found: error
+
+  # macos: build DMG (intel + arm64)
+  pack-macos:
+    runs-on: macos-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install deps
+        run: npm ci
+      - name: Build (DMG)
+        run: npx electron-builder --mac dmg
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aishe-macos-packages
+          path: dist/*dmg
+          if-no-files-found: error

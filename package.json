@@ -2,18 +2,43 @@
   "name": "aishe-desktop",
   "productName": "Aishe",
   "version": "1.0.0",
-  "description": "Full desktop client for aishe — chat, voice, memory, sessions, services, config and diagnostics in one window.",
+  "description": "Full desktop client for aishe \u2014 chat, voice, memory, sessions, services, config and diagnostics in one window.",
   "main": "main.js",
+  "author": {
+    "name": "Aishe",
+    "email": "astro@example.com",
+    "url": "https://github.com/astro/aishe"
+  },
   "license": "MIT",
   "private": false,
   "scripts": {
     "start": "electron .",
-    "test": "node --test test/backend.test.js"
+    "test": "node --test test/backend.test.js",
+    "pack": "electron-builder"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "electron": "^33.0.0"
+    "electron": "^33.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.astro.aishe",
+    "productName": "Aishe",
+    "artifactName": "${productName}-${version}-${os}-${arch}${extDir}",
+    "target": [
+      { "target": "nsis", "arch": ["x64"] },
+      { "target": "dmg", "arch": ["x64", "arm64"] },
+      { "target": "AppImage", "arch": ["x64"] },
+      { "target": "snap", "arch": ["x64"] }
+    ],
+    "linux": {
+      "category": "Utility",
+      "icon": "assets/icons/icon"
+    },
+    "mac": {
+      "icon": "assets/icons/icon.icns"
+    }
   }
 }
