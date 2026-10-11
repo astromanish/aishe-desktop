@@ -28,10 +28,31 @@
     "productName": "Aishe",
     "artifactName": "${productName}-${version}-${os}-${arch}${extDir}",
     "target": [
-      { "target": "nsis", "arch": ["x64"] },
-      { "target": "dmg", "arch": ["x64", "arm64"] },
-      { "target": "AppImage", "arch": ["x64"] },
-      { "target": "snap", "arch": ["x64"] }
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "dmg",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "AppImage",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "snap",
+        "arch": [
+          "x64"
+        ]
+      }
     ],
     "linux": {
       "category": "Utility",
@@ -40,5 +61,9 @@
     "mac": {
       "icon": "assets/icons/icon.icns"
     }
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }
